@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateEstadoDto } from './dto/update-turnos.dto';
 import { TurnosService } from './turnos.service';
@@ -17,8 +29,27 @@ export class TurnosController {
     return this.service.findAll(fecha);
   }
 
-  @Patch(':id/estado')
-  updateEstado(@Param('id') id: string, @Body() dto: UpdateEstadoDto) {
-    return this.service.updateEstado(id, dto);
+  @Get('admin')
+  @UseGuards(JwtAuthGuard)
+  findAllAdmin(@Query('fecha') fecha?: string) {
+    return this.service.findAll(fecha);
   }
+  
+  @Get('admin/mes')
+@UseGuards(JwtAuthGuard)
+findAllMes(
+  @Query('year') year: string,
+  @Query('month') month: string,
+) {
+  return this.service.findAllMes(Number(year), Number(month));
+}
+
+  @Patch(':id/estado')
+@UseGuards(JwtAuthGuard)
+updateEstado(
+  @Param('id') id: string,
+  @Body() dto: UpdateEstadoDto,
+) {
+  return this.service.updateEstado(id, dto);
+}
 }

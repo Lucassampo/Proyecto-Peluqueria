@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model clientes {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre     String
+  telefono   String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  turnos     turnos[]
+
+  @@index([telefono], map: "idx_clientes_telefono")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model horarios {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dia_semana  Int
+  hora_inicio DateTime @db.Time(6)
+  hora_fin    DateTime @db.Time(6)
+  activo      Boolean  @default(true)
+
+  @@index([dia_semana], map: "idx_horarios_dia")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model servicios {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre           String
+  descripcion      String?
+  precio           Decimal? @db.Decimal(10, 2)
+  duracion_minutos Int
+  activo           Boolean  @default(true)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  turnos           turnos[]
+
+  @@index([activo], map: "idx_servicios_activo")
+}
+
+model turnos {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cliente_id  String       @db.Uuid
+  servicio_id String       @db.Uuid
+  fecha       DateTime     @db.Date
+  hora        DateTime     @db.Time(6)
+  estado      turno_estado @default(PENDIENTE)
+  created_at  DateTime     @default(now()) @db.Timestamptz(6)
+  clientes    clientes     @relation(fields: [cliente_id], references: [id], onUpdate: NoAction, map: "turnos_cliente_fk")
+  servicios   servicios    @relation(fields: [servicio_id], references: [id], onUpdate: NoAction, map: "turnos_servicio_fk")
+
+  @@index([cliente_id], map: "idx_turnos_cliente")
+  @@index([fecha], map: "idx_turnos_fecha")
+  @@index([fecha, hora], map: "idx_turnos_fecha_hora")
+  @@index([servicio_id], map: "idx_turnos_servicio")
+}
+
+model usuarios {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String
+  email         String    @unique
+  password_hash String
+  rol           user_role @default(PELUQUERO)
+  activo        Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+enum turno_estado {
+  PENDIENTE
+  CONFIRMADO
+  CANCELADO
+  COMPLETADO
+}
+
+enum user_role {
+  ADMIN
+  PELUQUERO
+}
