@@ -227,13 +227,20 @@ export default function AdminApp() {
   }
 
   function formatearHora(hora: string) {
-    return new Date(hora).toLocaleTimeString("es-AR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "America/Argentina/Cordoba",
-    });
+  const iso = hora.match(/T(\d{2}):(\d{2})/);
+
+  if (iso) {
+    return `${iso[1]}:${iso[2]}`;
   }
+
+  const simple = hora.match(/^(\d{2}):(\d{2})/);
+
+  if (simple) {
+    return `${simple[1]}:${simple[2]}`;
+  }
+
+  return hora;
+}
 
   function formatearFecha(fechaISO: string) {
     const [year, month, day] = fechaISO.split("-");

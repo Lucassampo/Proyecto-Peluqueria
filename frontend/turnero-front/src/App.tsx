@@ -64,6 +64,24 @@ function generarHorarios() {
   return res;
 }
 
+function normalizarHora(hora: string): string {
+  // La API puede devolver una hora como fecha ISO.
+  const iso = hora.match(/T(\d{2}):(\d{2})/);
+
+  if (iso) {
+    return `${iso[1]}:${iso[2]}`;
+  }
+
+  // También acepta valores como "14:00:00" o "14:00".
+  const simple = hora.match(/^(\d{2}):(\d{2})/);
+
+  if (simple) {
+    return `${simple[1]}:${simple[2]}`;
+  }
+
+  return hora;
+}
+
 async function getTurnos(fecha: string): Promise<Turno[]> {
   const r = await fetch(
     `${API}/turnos?fecha=${encodeURIComponent(fecha)}`,
@@ -77,12 +95,7 @@ async function getTurnos(fecha: string): Promise<Turno[]> {
 
   return data.map((turno: any) => ({
     ...turno,
-    hora: new Date(turno.hora).toLocaleTimeString("es-AR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "America/Argentina/Cordoba",
-    }),
+    hora: normalizarHora(turno.hora),
   }));
 }
 
